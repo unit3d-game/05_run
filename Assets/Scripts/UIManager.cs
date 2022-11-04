@@ -48,15 +48,16 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        PostNotification.Register(Const.Notification.PlayerDie, PlayerDie);
+        PostNotification.Register(this);
     }
 
     private void OnDestroy()
     {
-        PostNotification.UnRegister(Const.Notification.PlayerDie, PlayerDie);
+        PostNotification.UnRegister(this);
     }
 
-    private void PlayerDie(MessagePayload payload)
+    [Subscribe(Const.Notification.PlayerDie)]
+    private void PlayerDie()
     {
         isDied = true;
         Debug.Log("Receive a message is player died.");

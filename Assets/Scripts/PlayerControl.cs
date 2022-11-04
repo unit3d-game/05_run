@@ -15,10 +15,11 @@ public class PlayerControl : MonoBehaviour
 
     private void Awake()
     {
-        PostNotification.Register(Const.Notification.PlayerRevive, IsRevive);
+        PostNotification.Register(this);
     }
 
-    private void IsRevive(MessagePayload payload)
+    [Subscribe(Const.Notification.PlayerRevive)]
+    public void IsRevive()
     {
         isDie = false;
         jumpStep = 2;
@@ -27,7 +28,7 @@ public class PlayerControl : MonoBehaviour
 
     private void OnDestroy()
     {
-        PostNotification.UnRegister(Const.Notification.PlayerRevive, IsRevive);
+        PostNotification.UnRegister(this);
     }
 
     void Start()

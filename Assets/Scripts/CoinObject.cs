@@ -17,6 +17,10 @@ public class CoinObject : MonoBehaviour
             PostNotification.Post(Const.Notification.EatedCoin, this, Score);
             Destroy(gameObject);
         }
+        if (collision.gameObject.tag == Const.Tag.Die)
+        {
+            Destroy(gameObject);
+        }
     }
 }
 

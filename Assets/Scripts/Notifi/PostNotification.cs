@@ -1,43 +1,77 @@
 ﻿using System.Collections.Generic;
 using System;
 using UnityEngine;
+using System.Reflection;
 
 // 消息走起来
 public class PostNotification
 {
 
-    // 事件
-    private static readonly Dictionary<string, Action<MessagePayload>> actions = new Dictionary<string, Action<MessagePayload>>();
+    // 事件名称和时间回调
+    private static readonly Dictionary<string, List<MethodObject>> _EventNames = new Dictionary<string, List<MethodObject>>();
+
+    // 目标和时间回调
+    private static readonly Dictionary<object, List<string>> _TargetEventNames = new Dictionary<object, List<string>>();
 
 
-    private static readonly Dictionary<object, List<ActionInfo>> targetActions = new Dictionary<object, List<ActionInfo>>();
+    /**
+     * 
+     * <summary>注册事件</summary>
+     * 
+     * <param name="target">事件对象</param>
+     * 
+     */
+    public static void Register(object target)
+    {
+
+        MethodInfo[] methods = target.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        // 检查是否有 attribute 注解
+        foreach (MethodInfo info in methods)
+        {
+            IEnumerable<System.Attribute> attrs = info.GetCustomAttributes(typeof(SubscribeAttribute));
+            foreach (System.Attribute attr in attrs)
+            {
+                // 注册一个事件
+                _Register(((SubscribeAttribute)attr).EventName, target, info);
+            }
+        }
+    }
+
+    /**
+     * 
+     * 注册
+     * 
+     */
+    private static void _Register(string name, object target, MethodInfo method)
+    {
+        ArrayUtils.AddAndGet<string, MethodObject>(_EventNames, name, () => new MethodObject(target, method));
+        ArrayUtils.AddAndGet<object, string>(_TargetEventNames, target, () => name);
+    }
+
+
+    /**
+     * 
+     * 取消注册
+     * 
+     */
+    private static void _UnRegister(string name, object target, MethodInfo method)
+    {
+        ArrayUtils.RemoveAndSet<string, MethodObject>(_EventNames, name, o => o.Method == method && o.Target == target);
+        ArrayUtils.RemoveAndSet<object, string>(_TargetEventNames, target, o => o == name);
+    }
 
     /**
      * <summary>注册一个事件</summary>
      * <param name="name">事件名称</param>
      * <param name="action">注册的事件函数</param>
      */
-    public static void Register(string name, Action<MessagePayload> action)
+    public static void Register<T>(string name, Action<MessagePayload<T>> action)
     {
-        if (actions.ContainsKey(name))
+        if (!_EventNames.ContainsKey(name))
         {
-            actions[name] += action;
+            return;
         }
-        else
-        {
-            actions.Add(name, action);
-        }
-        List<ActionInfo> list;
-        if (targetActions.ContainsKey(action.Target))
-        {
-            list = targetActions[action.Target];
-        }
-        else
-        {
-            list = new List<ActionInfo>();
-        }
-        list.Add(new ActionInfo(name, action));
-        targetActions[action.Target] = list;
+        _Register(name, action.Target, action.Method);
     }
 
 
@@ -46,32 +80,13 @@ public class PostNotification
     * <param name="name">事件名称</param>
     * <param name="action">注册的事件函数</param>
     */
-    public static void UnRegister(string name, Action<MessagePayload> action)
+    public static void UnRegister<T>(string name, Action<MessagePayload<T>> action)
     {
-        // 是否包含此事件
-        if (!actions.ContainsKey(name))
+        if (!_EventNames.ContainsKey(name))
         {
             return;
         }
-        // 去除事件
-        actions[name] -= action;
-        // 如果没有其他相关注册事件，则移除
-        if (actions[name] == null)
-        {
-            actions.Remove(name);
-        }
-        // 移除 target 引用
-        List<ActionInfo> list = targetActions[action.Target];
-        foreach (ActionInfo info in list)
-        {
-            if (info.action == action)
-            {
-                list.Remove(info);
-                break;
-            }
-        }
-        // 重置
-        targetActions[action.Target] = list;
+        _UnRegister(name, action.Target, action.Method);
     }
 
     /**
@@ -80,18 +95,18 @@ public class PostNotification
      */
     public static void UnRegister(object target)
     {
-        List<ActionInfo> list = targetActions[target];
-        foreach (ActionInfo info in list)
+        if (!_TargetEventNames.ContainsKey(target))
         {
-            actions[info.name] -= info.action;
-            if (actions[info.name] == null)
-            {
-                actions.Remove(info.name);
-            }
-            Debug.Log($"remove name is {info.name}");
+            return;
+        }
+        List<string> names = _TargetEventNames[target];
+        _TargetEventNames.Remove(target);
+        //设置
+        foreach (string name in names)
+        {
+            ArrayUtils.RemoveAndSet<string, MethodObject>(_EventNames, name, o => o.Target == target);
         }
 
-        targetActions.Remove(target);
     }
 
     /**
@@ -100,14 +115,24 @@ public class PostNotification
     * <param name="sender">触发者</param>
     * <param name="data">传递的数据</param>
     */
-    public static void Post(string name, object sender, object data)
+    public static void Post<T>(string name, object sender, T data)
     {
-        if (!actions.ContainsKey(name))
+        if (!_EventNames.ContainsKey(name))
         {
             return;
         }
-        // 触发事件
-        actions[name](new MessagePayload(name, sender, data));
+        ArrayUtils.iterator<string, MethodObject>(_EventNames, name, mo =>
+        {
+            if (mo.Required)
+            {
+                mo.Method.Invoke(mo.Target, new object[] { MessagePayload<T>.ValueOf(name, sender, data) });
+            }
+            else
+            {
+                mo.Method.Invoke(mo.Target, new object[] { });
+            }
+
+        });
     }
 
     /**
@@ -117,23 +142,42 @@ public class PostNotification
     */
     public static void Post(string name, object sender)
     {
-        Post(name, sender, null);
+        if (!_EventNames.ContainsKey(name))
+        {
+            return;
+        }
+        ArrayUtils.iterator<string, MethodObject>(_EventNames, name, mo =>
+        {
+
+            if (mo.Required)
+            {
+
+                mo.Method.Invoke(mo.Target, new object[] { MessagePayload<object>.ValueOf(name, sender) });
+            }
+            else
+            {
+                mo.Method.Invoke(mo.Target, new object[] { });
+            }
+        });
     }
 
 }
 
 
 
-public class ActionInfo
+public class MethodObject
 {
 
-    public string name;
+    public readonly object Target;
 
-    public Action<MessagePayload> action;
+    public readonly MethodInfo Method;
 
-    public ActionInfo(string name, Action<MessagePayload> action)
+    public readonly bool Required;
+
+    public MethodObject(object target, MethodInfo method)
     {
-        this.name = name;
-        this.action = action;
+        this.Target = target;
+        this.Method = method;
+        this.Required = !ArrayUtils.isEmpty(method.GetParameters());
     }
 }

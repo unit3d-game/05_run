@@ -14,18 +14,20 @@ public class GroundControl : MonoBehaviour
 
     private bool isDied = false;
 
-    //private CoinControl coinControl;
+    private CoinControl coinControl;
 
 
     // 创建一个随机地面，随机Y轴位置，随机宽度
     private void createGround(float ox)
     {
         GameObject ground = Instantiate(GroundPrefab, transform);
-        float offsetX = groundOfLast == null ? -Const.Config.MaxWidthOfScreen / 2 : (groundOfLast.getXOfBounds() + Random.Range(0.1f, Const.Config.MaxXOfGroundRandom));
+
+        float offsetX = groundOfLast == null ? 0 : (groundOfLast.getXOfBounds() + Random.Range(0.1f, Const.Config.MaxXOfGroundRandom));
         offsetX -= ox;
         groundOfLast = ground.GetComponent<GroundObject>();
         groundOfLast.Init(offsetX, Random.Range(-1.1f, -1.6f));
-        //coinControl.CreateGroup(ground);
+        coinControl = GetComponent<CoinControl>();
+        coinControl.CreateGroup(ground);
         if (next())
         {
             createGround(ox);
@@ -34,20 +36,25 @@ public class GroundControl : MonoBehaviour
 
     private void OnDestroy()
     {
-        PostNotification.UnRegister(Const.Notification.PlayerDie, PlayerDie);
+        PostNotification.UnRegister(this);
     }
 
-    private void PlayerDie(MessagePayload payload)
+    [Subscribe(Const.Notification.PlayerDie)]
+    private void PlayerDie()
     {
         isDied = true;
         Debug.Log("Receive a message is player died.");
     }
 
+
     private void Awake()
     {
+        PostNotification.Register(this);
+    }
+
+    private void Start()
+    {
         createGround(0);
-        PostNotification.Register(Const.Notification.PlayerDie, PlayerDie);
-        //coinControl = GetComponent<CoinControl>();
     }
 
     void Update()

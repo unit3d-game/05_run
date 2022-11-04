@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerStatusControl : MonoBehaviour
 {
-    private Text level;
+    private TMP_Text level;
 
-    private Text score;
+    private TMP_Text score;
 
     private Text life2;
 
@@ -19,23 +20,24 @@ public class PlayerStatusControl : MonoBehaviour
 
     private readonly static string[] stars = { "", "❤️", "❤️ ❤️", "❤️ ❤️ ❤️" };
 
-    void Start()
+    private void Awake()
     {
-        level = transform.Find("Level").GetComponent<Text>();
-        score = transform.Find("Score").GetComponent<Text>();
+        PostNotification.Register(this);
+        level = transform.Find("Level").GetComponent<TMP_Text>();
+        score = transform.Find("Score").GetComponent<TMP_Text>();
         life2 = transform.Find("Life2").GetComponent<Text>();
+        life2.text = stars[lifeNum];
         gameOver = transform.Find("GameOver").gameObject;
     }
 
-    private void Awake()
+    private void OnDestroy()
     {
-        PostNotification.Register(Const.Notification.EatedCoin, EatedCoin);
-        PostNotification.Register(Const.Notification.PassedLevel, PassedLevel);
-        PostNotification.Register(Const.Notification.PlayerDie, PlayerDie);
-        PostNotification.Register(Const.Notification.PlayerRevive, PlayerRevive);
+        PostNotification.UnRegister(this);
+        Debug.Log("player status destroy.");
     }
 
-    private void PlayerDie(MessagePayload payload)
+    [Subscribe(Const.Notification.PlayerDie)]
+    private void PlayerDie()
     {
         gameOver.SetActive(true);
 
@@ -47,27 +49,27 @@ public class PlayerStatusControl : MonoBehaviour
 
     }
 
-    private void PlayerRevive(MessagePayload payload)
+    [Subscribe(Const.Notification.PlayerRevive)]
+    private void PlayerRevive()
     {
         gameOver.SetActive(false);
     }
 
-    private void PassedLevel(MessagePayload payload)
+    [Subscribe(Const.Notification.PassedLevel)]
+    private void PassedLevel(MessagePayload<int> payload)
     {
-        currentLevel = (int)payload.data;
+        currentLevel = payload.data;
         level.text = $"{currentLevel}";
     }
 
-    private void EatedCoin(MessagePayload payload)
+
+    [Subscribe(Const.Notification.EatedCoin)]
+    private void EatedCoin(MessagePayload<int> payload)
     {
-        totalScore += (int)payload.data;
+        totalScore += payload.data;
         score.text = $"{totalScore}";
     }
 
-    private void OnDestroy()
-    {
 
-        PostNotification.UnRegister(this);
-    }
 }
 
