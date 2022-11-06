@@ -8,8 +8,6 @@ public class UIManager : MonoBehaviour
     public Sprite[] Backgrounds;
     // 游戏主角
     public GameObject PlayerPrefab;
-    // 敌人
-    public GameObject EnemyPrefab;
 
     // 背景移动速度
     public float SpeedOfBackground;

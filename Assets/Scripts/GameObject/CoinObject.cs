@@ -13,10 +13,10 @@ public class CoinObject : MonoBehaviour
 
         if (collision.gameObject.tag == Const.Tag.Player)
         {
-            AudioManager.Play("金币");
-            PostNotification.Post(Const.Notification.EatedCoin, this, Score);
+            UserStorage.AddScore(Score);
             Destroy(gameObject);
         }
+
         if (collision.gameObject.tag == Const.Tag.Die)
         {
             Destroy(gameObject);

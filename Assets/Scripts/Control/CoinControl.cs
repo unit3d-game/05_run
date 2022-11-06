@@ -32,51 +32,60 @@ public class CoinControl : MonoBehaviour
         }
     }
 
+    private float getRandomX(GroundObject ground)
+    {
+        return UnityEngine.Random.Range(-ground.RenderWidth / 2 + 0.2f, ground.RenderWidth / 2 - 0.4f);
+    }
 
     private void CreateOne(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(UnityEngine.Random.Range(0f, goo.RenderWidth), UnityEngine.Random.Range(0f, 0.8f));
+        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(1f, 2f));
         CreateACoin(CoinPrefabs[UnityEngine.Random.Range(0, CoinPrefabs.Length)], ground, vector2);
     }
 
     private void CreateVGroup(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(UnityEngine.Random.Range(0f, 1f), 0f);
+        Vector2 vector2 = new Vector2(getRandomX(goo), 1f);
         CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x - 0.6f, vector2.y + 0.8f));
-        CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x - 0.3f, vector2.y + 0.4f));
-        CreateACoin(CoinPrefabs[0], ground, vector2);
-        CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x + 0.3f, vector2.y + 0.4f));
+        CreateACoin(CoinPrefabs[1], ground, new Vector2(vector2.x - 0.3f, vector2.y + 0.4f));
+        CreateACoin(CoinPrefabs[2], ground, vector2);
+        CreateACoin(CoinPrefabs[1], ground, new Vector2(vector2.x + 0.3f, vector2.y + 0.4f));
         CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x + 0.6f, vector2.y + 0.8f));
     }
 
     private void CreateACoin(GameObject coinPrefab, GameObject ground, Vector2 position)
     {
+        // 创建一个金币物体，父物体是 ground
         GameObject coin = Instantiate(coinPrefab, ground.transform);
-        coin.transform.localScale = Vector3.one;
-        Vector3 pos = coin.transform.position;
+        // 设置金币坐标
+        Vector3 pos = coin.transform.localPosition;
         pos.y = position.y;
         pos.x = position.x;
-        coin.transform.position = pos;
+        coin.transform.localPosition = pos;
+        // 设置激活状态
+        coin.SetActive(true);
+        // 设置显示序列
+        coin.GetComponent<SpriteRenderer>().sortingOrder = 5;
     }
 
 
     private void CreateNGroup(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(UnityEngine.Random.Range(0f, 1f), 0.8f);
+        Vector2 vector2 = new Vector2(getRandomX(goo), 1.5f);
         CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x - 0.6f, vector2.y - 0.8f));
-        CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x - 0.3f, vector2.y - 0.4f));
-        CreateACoin(CoinPrefabs[1], ground, vector2);
-        CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x + 0.3f, vector2.y - 0.4f));
+        CreateACoin(CoinPrefabs[1], ground, new Vector2(vector2.x - 0.3f, vector2.y - 0.4f));
+        CreateACoin(CoinPrefabs[2], ground, vector2);
+        CreateACoin(CoinPrefabs[1], ground, new Vector2(vector2.x + 0.3f, vector2.y - 0.4f));
         CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x + 0.6f, vector2.y - 0.8f));
     }
 
     private void CreateLineGroup(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(0f, 1f));
         int size = UnityEngine.Random.Range(1, 5);
         for (var i = 0; i < size; i++)
         {

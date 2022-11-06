@@ -16,6 +16,8 @@ public class GroundControl : MonoBehaviour
 
     private CoinControl coinControl;
 
+    private EnemyControl enemyControl;
+
 
     // 创建一个随机地面，随机Y轴位置，随机宽度
     private void createGround(float ox)
@@ -27,12 +29,20 @@ public class GroundControl : MonoBehaviour
         groundOfLast = ground.GetComponent<GroundObject>();
         groundOfLast.Init(offsetX, Random.Range(-1.1f, -1.6f));
         coinControl = GetComponent<CoinControl>();
+        enemyControl = GetComponent<EnemyControl>();
         coinControl.CreateGroup(ground);
+        enemyControl.CreateEnemy(ground);
         if (next())
         {
             createGround(ox);
         }
     }
+
+    private void Awake()
+    {
+        PostNotification.Register(this);
+    }
+
 
     private void OnDestroy()
     {
@@ -44,12 +54,6 @@ public class GroundControl : MonoBehaviour
     {
         isDied = true;
         Debug.Log("Receive a message is player died.");
-    }
-
-
-    private void Awake()
-    {
-        PostNotification.Register(this);
     }
 
     private void Start()

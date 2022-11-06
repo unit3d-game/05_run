@@ -16,15 +16,18 @@ public class GroundObject : MonoBehaviour
      */
     public void Init(float x, float y)
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        boxCollider2D = GetComponent<BoxCollider2D>();
+
+        Transform groundObject = transform.Find("GroundObject");
+
+        spriteRenderer = groundObject.GetComponent<SpriteRenderer>();
+        boxCollider2D = groundObject.GetComponent<BoxCollider2D>();
         // 随机一个 宽度
         RenderWidth = Random.Range(Const.Config.WidthRangeOfGround.x, Const.Config.WidthRangeOfGround.y);
         // 横向拉伸
         float scaleX = RenderWidth / spriteRenderer.sprite.bounds.size.x;
         //Debug.Log($"p[{x},{y}],x{scaleX}, bs {spriteRenderer.sprite.bounds.size.x}");
         // 宽度缩放
-        transform.localScale = new Vector3(scaleX, 1, 1);
+        groundObject.localScale = new Vector3(scaleX, 1, 1);
         // 重新计算中心点,
         Vector3 position = transform.position;
         // 位置
@@ -37,6 +40,7 @@ public class GroundObject : MonoBehaviour
     {
         return transform.position.x + RenderWidth;
     }
+
 
     private void Update()
     {

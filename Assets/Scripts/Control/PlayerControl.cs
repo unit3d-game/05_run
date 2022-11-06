@@ -16,6 +16,8 @@ public class PlayerControl : MonoBehaviour
     private void Awake()
     {
         PostNotification.Register(this);
+        rbody = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
     }
 
     [Subscribe(Const.Notification.PlayerRevive)]
@@ -29,12 +31,6 @@ public class PlayerControl : MonoBehaviour
     private void OnDestroy()
     {
         PostNotification.UnRegister(this);
-    }
-
-    void Start()
-    {
-        rbody = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
     }
 
     void Update()
@@ -115,10 +111,9 @@ public class PlayerControl : MonoBehaviour
         else if (collision.gameObject.tag == Const.Tag.Die)
         {
             animator.SetInteger("state", 2);
-            AudioManager.Play("Boss死了");
             jumpStep = 0;
             isDie = true;
-            PostNotification.Post(Const.Notification.PlayerDie, this);
+            UserStorage.Die();
         }
     }
 }
