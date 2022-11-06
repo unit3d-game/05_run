@@ -19,7 +19,7 @@ public partial class Const
     public static class GameObjectName
     {
 
-        public const string LeftClearBox = "LeftClearBox";
+        public const string LeftDie = "LeftDie";
     }
 
     public static class Dirction

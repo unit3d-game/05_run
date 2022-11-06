@@ -15,7 +15,7 @@ public partial class Const
         /**
          * <summary>地面X轴最大随机范围0-X</summary>
          */
-        public const float MaxXOfGroundRandom = 0.5f;
+        public const float MaxXOfGroundRandom = 0.3f;
 
 
         /**

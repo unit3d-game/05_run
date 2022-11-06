@@ -24,5 +24,8 @@ public class SingleTonUtils
 
 public enum SingletonType
 {
-    AudioMananger
+    AudioMananger,
+
+    UserStorage
+
 }

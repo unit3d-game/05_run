@@ -106,7 +106,11 @@ public class ArrayUtils
         }
     }
 
-
+    /**
+     * <summary>列表是否为空</summary>
+     * <param name="list">检查的列表</param>
+     * <returns>结果,true 为空，false 不为空</returns>
+     */
     public static bool isEmpty<T>(T[] list)
     {
         return list == null || list.Count() == 0;
