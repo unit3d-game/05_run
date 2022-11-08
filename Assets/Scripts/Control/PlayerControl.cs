@@ -1,7 +1,10 @@
 using UnityEngine;
 
-public class PlayerControl : MonoBehaviour
+public class PlayerControl : BaseNotificationBehaviour
 {
+
+
+    private const float InvincibleTimeDuration = 3f;
 
     private Rigidbody2D rbody;
 
@@ -11,83 +14,95 @@ public class PlayerControl : MonoBehaviour
 
     private float speed;
 
-    private bool isDie = false;
 
-    private void Awake()
+    private float invincibleTime = 0;
+
+    public override void Awake()
     {
-        PostNotification.Register(this);
+        base.Awake();
         rbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
     }
 
-    [Subscribe(Const.Notification.PlayerRevive)]
-    public void IsRevive()
+
+    private void setHide(bool value)
     {
-        isDie = false;
-        jumpStep = 2;
-        animator.SetInteger("state", 0);
+        if (value)
+        {
+            invincibleTime = InvincibleTimeDuration;
+        }
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        Color color = spriteRenderer.material.color;
+        color.a = value ? 0.6f : 1f;
+        spriteRenderer.material.color = color;
     }
 
-    private void OnDestroy()
+    private void FixedUpdate()
     {
-        PostNotification.UnRegister(this);
-    }
-
-    void Update()
-    {
-        if (isDie)
+        if (invincibleTime == 0)
         {
             return;
         }
 
+        invincibleTime -= Time.deltaTime;
+        if (invincibleTime <= 0)
+        {
+            setHide(false);
+        }
+    }
+
+
+    [Subscribe(Const.Notification.PlayerDie)]
+    public void StartAgain()
+    {
+        // 重置状态
+        jumpStep = 2;
+        animator.SetInteger("state", 0);
+        // 设置 position
+        Vector3 pos = transform.position;
+        pos.x = 0;
+        pos.y = 1.2f;
+        transform.position = pos;
+        setHide(true);
+    }
+
+    void Update()
+    {
+        // 水平方向
+        float hor = Input.GetAxis(Const.Axis.Horizontal);
+        // 是否jump
         if (Input.GetKeyDown(KeyCode.Space) && jumpStep > 0)
         {
             Jump();
         }
-
-        bool isDir = false;
-
-        if (Input.GetKeyDown(KeyCode.A))
+        setSpeed(hor);
+        if (speed == 0)
         {
-            speed = speed == 0 ? -2 : -1;
-            isDir = true;
+            return;
         }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            speed = speed == 0 ? 1 : -1;
-            isDir = true;
-        }
+        Vector3 pos = transform.position;
+        pos.x += Time.deltaTime * speed;
+        transform.position = pos;
+    }
 
-        if (Input.GetKeyUp(KeyCode.A))
+    private void setSpeed(float hor)
+    {
+        if (hor == 0)
         {
-            speed += 2;
-            isDir = true;
+            speed = 0;
+            transform.rotation = Quaternion.identity;
         }
-
-        if (Input.GetKeyUp(KeyCode.D))
+        else if (hor > 0)
         {
-            speed -= 1;
-            isDir = true;
+            speed = 1;
+            transform.rotation = Quaternion.identity;
         }
-
-        if (isDir)
+        else if (speed != -2)
         {
-            if (speed >= 0)
-            {
-                transform.rotation = Quaternion.identity;
-            }
-            else
-            {
-                transform.Rotate(new Vector3(0, -180, 0));
-            }
+            speed = -2;
+            transform.Rotate(new Vector3(0, -180, 0));
         }
 
-        if (speed != 0)
-        {
-            Vector3 pos = transform.position;
-            pos.x += Time.deltaTime * speed;
-            transform.position = pos;
-        }
     }
 
 
@@ -110,9 +125,11 @@ public class PlayerControl : MonoBehaviour
 
         else if (collision.gameObject.tag == Const.Tag.Die)
         {
-            animator.SetInteger("state", 2);
-            jumpStep = 0;
-            isDie = true;
+            // 如果还是隐身状态，忽略碰触死亡
+            if (invincibleTime > 0)
+            {
+                return;
+            }
             UserStorage.Die();
         }
     }

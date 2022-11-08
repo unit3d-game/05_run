@@ -1,7 +1,12 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.SocialPlatforms.Impl;
 
+/**
+ * <summary>用户存储</summary>
+ * 
+ */
 public class UserStorage
 {
     public readonly UserGameData userGameData;
@@ -13,22 +18,25 @@ public class UserStorage
     public UserStorage()
     {
         // 加载数据
-        UserGameData data = JSONUtils.Load<UserGameData>(Const.FileName.UserData);
-        if (data == null || data.level == 0)
+        UserGameData data = JSONUtils.Load<UserGameData>();
+        if (data == null || data.Level == 0)
         {
             data = new UserGameData();
-            data.level = 1;
-            data.offsetX = 0.5f;
-            data.probabilityOfEnemy = 10;
-            data.totalScore = 0;
-            data.probabilityOfStool = 10;
-            data.lifeNum = 3;
+            data.Level = 1;
+            data.OffsetX = 0.5f;
+            data.ProbabilityOfEnemy = 10;
+            data.TotalScore = 0;
+            data.ProbabilityOfTable = 10;
+            data.LifeNum = 3;
         }
         userGameData = data;
-        JSONUtils.toJSON(data);
+        Debug.Log($"User data is {JSONUtils.toJSON(data)}");
     }
 
-
+    /**
+     * <summary>获取数据</summary>
+     * <returns>返回 数据</returns>
+     */
     public static UserGameData Get()
     {
 
@@ -41,13 +49,13 @@ public class UserStorage
      */
     private static void UpgradeLevel()
     {
-        Instance.userGameData.level += 1;
-        int level = Instance.userGameData.level;
-        Instance.userGameData.offsetX = 0.5f * (level / 4);
-        Instance.userGameData.probabilityOfEnemy = 10 + 10 * (level / 4);
-        Instance.userGameData.probabilityOfStool = 10 + 10 * (level / 4);
+        Instance.userGameData.Level += 1;
+        int level = Instance.userGameData.Level;
+        Instance.userGameData.OffsetX = 0.5f * (level / 4);
+        Instance.userGameData.ProbabilityOfEnemy = 10 + 10 * (level / 4);
+        Instance.userGameData.ProbabilityOfTable = 10 + 10 * (level / 4);
         // 发送升级事件
-        JSONUtils.Save<UserGameData>(Instance.userGameData, Const.FileName.UserData);
+        JSONUtils.Save<UserGameData>(Instance.userGameData);
         PostNotification.Post(Const.Notification.PassedLevel, Instance);
     }
 
@@ -57,20 +65,20 @@ public class UserStorage
      */
     public static void AddScore(int score)
     {
-        Instance.userGameData.totalScore += score;
+        Instance.userGameData.TotalScore += score;
         AudioManager.Play("金币");
 
         // 检查是否升级
-        int maxScore = (2 << Instance.userGameData.level) * 100;
+        int maxScore = (2 << Instance.userGameData.Level) * 100;
         // 是否需要升级
-        if (maxScore <= Instance.userGameData.totalScore)
+        if (maxScore <= Instance.userGameData.TotalScore)
         {
             // 升级
             UpgradeLevel();
         }
         else
         {
-            JSONUtils.Save<UserGameData>(Instance.userGameData, Const.FileName.UserData);
+            JSONUtils.Save<UserGameData>(Instance.userGameData);
             // 发送积分
             PostNotification.Post(Const.Notification.EatedCoin, Instance, score);
         }
@@ -81,11 +89,56 @@ public class UserStorage
      */
     public static void Die()
     {
+        if (Instance.userGameData.LifeNum < 1)
+        {
+            return;
+        }
         AudioManager.Play("Boss死了");
-        Instance.userGameData.lifeNum--;
-        JSONUtils.Save<UserGameData>(Instance.userGameData, Const.FileName.UserData);
+        Instance.userGameData.LifeNum--;
+        JSONUtils.Save<UserGameData>(Instance.userGameData);
 
-        PostNotification.Post(Const.Notification.PlayerDie, Instance);
+        if (Instance.userGameData.LifeNum > 0)
+        {
+            PostNotification.Post(Const.Notification.PlayerDie, Instance);
+        }
+        else
+        {
+            SceneManager.LoadScene("GameOver");
+            PostNotification.Post(Const.Notification.GameOver, Instance);
+        }
+    }
+
+    /**
+     * <summary>游戏是否结束</summary>
+     * <returns>true 已经结束，false 未结束</returns>
+     */
+    public static bool IsGameOver()
+    {
+
+        return Instance.userGameData.LifeNum <= 0;
+    }
+
+    private void restart()
+    {
+
+        // 加载数据
+        userGameData.Level = 1;
+        userGameData.OffsetX = 0.5f;
+        userGameData.ProbabilityOfEnemy = 10;
+        userGameData.TotalScore = 0;
+        userGameData.ProbabilityOfTable = 10;
+        userGameData.LifeNum = 3;
+        JSONUtils.Save<UserGameData>(Instance.userGameData);
+    }
+
+    /**
+     * <summary>重新开始</summary>
+     * 
+     */
+    public static void Restart()
+    {
+
+        Instance.restart();
     }
 }
 

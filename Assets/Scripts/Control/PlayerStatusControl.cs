@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerStatusControl : MonoBehaviour
+public class PlayerStatusControl : BaseNotificationBehaviour
 {
     private TMP_Text level;
 
@@ -14,52 +14,47 @@ public class PlayerStatusControl : MonoBehaviour
 
     private readonly static string[] stars = { "", "❤️", "❤️ ❤️", "❤️ ❤️ ❤️" };
 
-    private void Awake()
+    public override void Awake()
     {
+        // 这里调用下父类原始方法
+        base.Awake();
         PostNotification.Register(this);
         UserGameData userGameData = UserStorage.Get();
         level = transform.Find("Level").GetComponent<TMP_Text>();
         score = transform.Find("Score").GetComponent<TMP_Text>();
         life2 = transform.Find("Life2").GetComponent<Text>();
-        Debug.Log($"life num is {userGameData.lifeNum}");
-        life2.text = stars[userGameData.lifeNum];
-        score.text = $"{userGameData.totalScore}";
-        level.text = $"{userGameData.level}";
+        Debug.Log($"life num is {userGameData.LifeNum}");
+        life2.text = stars[userGameData.LifeNum];
+        score.text = $"{userGameData.TotalScore}";
+        level.text = $"{userGameData.Level}";
         gameOver = transform.Find("GameOver").gameObject;
     }
 
-    private void OnDestroy()
-    {
-        PostNotification.UnRegister(this);
-        Debug.Log("player status destroy.");
-    }
-
-    [Subscribe(Const.Notification.PlayerDie)]
+    [Subscribe(Const.Notification.GameOver)]
     private void PlayerDie()
     {
         gameOver.SetActive(true);
 
-        life2.text = stars[UserStorage.Get().lifeNum];
-
+        life2.text = stars[UserStorage.Get().LifeNum];
     }
 
-    [Subscribe(Const.Notification.PlayerRevive)]
-    private void PlayerRevive()
+    [Subscribe(Const.Notification.GameRestart)]
+    private void GameRestart()
     {
         gameOver.SetActive(false);
     }
 
     [Subscribe(Const.Notification.PassedLevel)]
-    private void PassedLevel(MessagePayload<int> payload)
+    private void PassedLevel()
     {
-        level.text = $"{UserStorage.Get().level}";
+        level.text = $"{UserStorage.Get().Level}";
     }
 
 
     [Subscribe(Const.Notification.EatedCoin)]
-    private void EatedCoin(MessagePayload<int> payload)
+    private void EatedCoin()
     {
-        score.text = $"{UserStorage.Get().totalScore}";
+        score.text = $"{UserStorage.Get().TotalScore}";
     }
 }
 

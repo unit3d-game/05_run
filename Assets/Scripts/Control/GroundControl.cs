@@ -12,11 +12,11 @@ public class GroundControl : MonoBehaviour
     private GroundObject groundOfLast;
 
 
-    private bool isDied = false;
-
     private CoinControl coinControl;
 
     private EnemyControl enemyControl;
+
+    private TableControl tableControl;
 
 
     // 创建一个随机地面，随机Y轴位置，随机宽度
@@ -30,30 +30,14 @@ public class GroundControl : MonoBehaviour
         groundOfLast.Init(offsetX, Random.Range(-1.1f, -1.6f));
         coinControl = GetComponent<CoinControl>();
         enemyControl = GetComponent<EnemyControl>();
-        coinControl.CreateGroup(ground);
-        enemyControl.CreateEnemy(ground);
+        tableControl = GetComponent<TableControl>();
+        coinControl.Create(ground);
+        enemyControl.Create(ground);
+        tableControl.Create(ground);
         if (next())
         {
             createGround(ox);
         }
-    }
-
-    private void Awake()
-    {
-        PostNotification.Register(this);
-    }
-
-
-    private void OnDestroy()
-    {
-        PostNotification.UnRegister(this);
-    }
-
-    [Subscribe(Const.Notification.PlayerDie)]
-    private void PlayerDie()
-    {
-        isDied = true;
-        Debug.Log("Receive a message is player died.");
     }
 
     private void Start()
@@ -63,10 +47,6 @@ public class GroundControl : MonoBehaviour
 
     void Update()
     {
-        if (isDied)
-        {
-            return;
-        }
         // 本次移动的位置
         float speed = Time.deltaTime * Speed;
         // 移动背景位置

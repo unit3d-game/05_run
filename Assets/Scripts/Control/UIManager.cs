@@ -12,16 +12,8 @@ public class UIManager : MonoBehaviour
     // 背景移动速度
     public float SpeedOfBackground;
 
-
-    private bool isDied = false;
-
-
     void Update()
     {
-        if (isDied)
-        {
-            return;
-        }
         float moveX = Time.deltaTime * SpeedOfBackground;
         // 移动背景位置
         foreach (Transform tran in transform)
@@ -42,23 +34,6 @@ public class UIManager : MonoBehaviour
             }
             tran.position = position;
         }
-    }
-
-    private void Awake()
-    {
-        PostNotification.Register(this);
-    }
-
-    private void OnDestroy()
-    {
-        PostNotification.UnRegister(this);
-    }
-
-    [Subscribe(Const.Notification.PlayerDie)]
-    private void PlayerDie()
-    {
-        isDied = true;
-        Debug.Log("Receive a message is player died.");
     }
 
     void Start()

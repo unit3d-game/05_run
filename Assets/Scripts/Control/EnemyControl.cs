@@ -6,9 +6,9 @@ public class EnemyControl : MonoBehaviour
     // 敌人
     public GameObject EnemyPrefab;
 
-    public void CreateEnemy(GameObject ground)
+    public void Create(GameObject ground)
     {
-        if (!RandomUtils.isWithinRatioOfPrecent(UserStorage.Get().probabilityOfEnemy))
+        if (!RandomUtils.isWithinRatioOfPrecent(UserStorage.Get().ProbabilityOfEnemy))
         {
             return;
         }

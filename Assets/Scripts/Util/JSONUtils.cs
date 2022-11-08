@@ -18,6 +18,15 @@ public class JSONUtils
     }
 
     /**
+    * <summary>保存一个json对象，文件名是 typeof name</summary>
+    * <param name="data">JSON 对象</param>
+    */
+    public static void Save<T>(T data)
+    {
+        File.WriteAllText(Application.persistentDataPath + typeof(T).Name, JsonConvert.SerializeObject(data));
+    }
+
+    /**
      * <summary>删除一个文件</summary>
      * <param name="fileName">要删除的文件名称</param>
      * <returns>是否已删除，true 删除，false 未删除或不存在</returns>
@@ -35,14 +44,21 @@ public class JSONUtils
     }
 
     /**
+     * <summary>删除 typeof name 文件</summary>
+     * <returns>删除结果</returns>
+     */
+    public static bool Delete<T>()
+    {
+        return Delete(typeof(T).Name);
+    }
+
+    /**
      * <summary>将 object 序列化成 json</summary>
      * <param name="data">要序列化的数据</param>
      */
     public static string toJSON(object data)
     {
-        string json = JsonConvert.SerializeObject(data);
-        Debug.Log($"JSON is {json}");
-        return json;
+        return JsonConvert.SerializeObject(data);
     }
 
     /**
@@ -61,8 +77,14 @@ public class JSONUtils
         string data = File.ReadAllText(Application.persistentDataPath + fileName, Encoding.UTF8);
         return JsonConvert.DeserializeObject<T>(data);
     }
-
-
+    /**
+     * <summary>加载数据，文件名是 typeof name</summary>
+     * <returns>加载完的数据</returns>
+     */
+    public static T Load<T>()
+    {
+        return Load<T>(typeof(T).Name);
+    }
 
 }
 

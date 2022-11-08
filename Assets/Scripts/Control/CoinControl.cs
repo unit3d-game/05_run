@@ -18,7 +18,7 @@ public class CoinControl : MonoBehaviour
         groups[3] = new CoinGroup(100, CreateLineGroup);
     }
 
-    public void CreateGroup(GameObject ground)
+    public void Create(GameObject ground)
     {
         // 随机coin 类型
         int random = UnityEngine.Random.Range(0, 100);
