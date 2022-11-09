@@ -23,8 +23,8 @@ public class GroundControl : MonoBehaviour
     private void createGround(float ox)
     {
         GameObject ground = Instantiate(GroundPrefab, transform);
-
-        float offsetX = groundOfLast == null ? 0 : (groundOfLast.getXOfBounds() + Random.Range(0.1f, Const.Config.MaxXOfGroundRandom));
+        UserGameData userGameData = UserStorage.Get();
+        float offsetX = groundOfLast == null ? 0 : (groundOfLast.getXOfBounds() + Random.Range(0.2f, userGameData.OffsetX));
         offsetX -= ox;
         groundOfLast = ground.GetComponent<GroundObject>();
         groundOfLast.Init(offsetX, Random.Range(-1.1f, -1.6f));
@@ -47,6 +47,10 @@ public class GroundControl : MonoBehaviour
 
     void Update()
     {
+        if (UserStorage.IsStopped())
+        {
+            return;
+        }
         // 本次移动的位置
         float speed = Time.deltaTime * Speed;
         // 移动背景位置

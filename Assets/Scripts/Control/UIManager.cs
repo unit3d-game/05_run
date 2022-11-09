@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class UIManager : MonoBehaviour
+public class UIManager : BaseNotificationBehaviour
 {
     // 背景图片
     public Sprite[] Backgrounds;
@@ -34,6 +34,13 @@ public class UIManager : MonoBehaviour
             }
             tran.position = position;
         }
+    }
+
+
+    [Subscribe(Const.Notification.PlayerResurrection)]
+    public void StartAgain()
+    {
+        initPlayer();
     }
 
     void Start()

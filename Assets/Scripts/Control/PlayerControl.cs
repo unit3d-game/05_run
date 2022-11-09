@@ -25,6 +25,11 @@ public class PlayerControl : BaseNotificationBehaviour
     }
 
 
+    private void OnEnable()
+    {
+        animator.SetInteger("state", 0);
+    }
+
     private void setHide(bool value)
     {
         if (value)
@@ -50,9 +55,13 @@ public class PlayerControl : BaseNotificationBehaviour
             setHide(false);
         }
     }
-
-
     [Subscribe(Const.Notification.PlayerDie)]
+    private void PlayerDie()
+    {
+
+        Destroy(gameObject);
+    }
+
     public void StartAgain()
     {
         // 重置状态
@@ -68,6 +77,11 @@ public class PlayerControl : BaseNotificationBehaviour
 
     void Update()
     {
+        if (UserStorage.IsStopped())
+        {
+            return;
+        }
+
         // 水平方向
         float hor = Input.GetAxis(Const.Axis.Horizontal);
         // 是否jump
@@ -75,17 +89,20 @@ public class PlayerControl : BaseNotificationBehaviour
         {
             Jump();
         }
-        setSpeed(hor);
+        // 设置方向和速度
+        setSpeedAndDir(hor);
+        // 如果速度为0，则忽略
         if (speed == 0)
         {
             return;
         }
+        // 开始移动
         Vector3 pos = transform.position;
         pos.x += Time.deltaTime * speed;
         transform.position = pos;
     }
 
-    private void setSpeed(float hor)
+    private void setSpeedAndDir(float hor)
     {
         if (hor == 0)
         {
@@ -130,6 +147,7 @@ public class PlayerControl : BaseNotificationBehaviour
             {
                 return;
             }
+            animator.SetInteger("state", 2);
             UserStorage.Die();
         }
     }

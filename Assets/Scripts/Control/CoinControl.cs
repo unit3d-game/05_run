@@ -40,14 +40,14 @@ public class CoinControl : MonoBehaviour
     private void CreateOne(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(1f, 2f));
+        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(1.5f, 2.2f));
         CreateACoin(CoinPrefabs[UnityEngine.Random.Range(0, CoinPrefabs.Length)], ground, vector2);
     }
 
     private void CreateVGroup(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(getRandomX(goo), 1f);
+        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(1f, 1.7f));
         CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x - 0.6f, vector2.y + 0.8f));
         CreateACoin(CoinPrefabs[1], ground, new Vector2(vector2.x - 0.3f, vector2.y + 0.4f));
         CreateACoin(CoinPrefabs[2], ground, vector2);
@@ -74,7 +74,7 @@ public class CoinControl : MonoBehaviour
     private void CreateNGroup(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(getRandomX(goo), 1.5f);
+        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(1.7f, 2.5f));
         CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x - 0.6f, vector2.y - 0.8f));
         CreateACoin(CoinPrefabs[1], ground, new Vector2(vector2.x - 0.3f, vector2.y - 0.4f));
         CreateACoin(CoinPrefabs[2], ground, vector2);
@@ -85,8 +85,8 @@ public class CoinControl : MonoBehaviour
     private void CreateLineGroup(GameObject ground)
     {
         GroundObject goo = ground.GetComponent<GroundObject>();
-        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(0f, 1f));
-        int size = UnityEngine.Random.Range(1, 5);
+        Vector2 vector2 = new Vector2(getRandomX(goo), UnityEngine.Random.Range(1.2f, 2f));
+        int size = UnityEngine.Random.Range(2, 5);
         for (var i = 0; i < size; i++)
         {
             CreateACoin(CoinPrefabs[0], ground, new Vector2(vector2.x + i * 0.3f, vector2.y));

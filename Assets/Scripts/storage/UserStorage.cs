@@ -15,22 +15,18 @@ public class UserStorage
     public readonly static UserStorage Instance = new UserStorage();
 
 
+    private static bool isStopped = false;
+
     public UserStorage()
     {
         // 加载数据
         UserGameData data = JSONUtils.Load<UserGameData>();
-        if (data == null || data.Level == 0)
+        if (data == null || data.Level == 0 || data.LifeNum == 0)
         {
             data = new UserGameData();
-            data.Level = 1;
-            data.OffsetX = 0.5f;
-            data.ProbabilityOfEnemy = 10;
-            data.TotalScore = 0;
-            data.ProbabilityOfTable = 10;
-            data.LifeNum = 3;
+            clear(data);
         }
         userGameData = data;
-        Debug.Log($"User data is {JSONUtils.toJSON(data)}");
     }
 
     /**
@@ -39,7 +35,6 @@ public class UserStorage
      */
     public static UserGameData Get()
     {
-
         return Instance.userGameData;
     }
 
@@ -51,9 +46,10 @@ public class UserStorage
     {
         Instance.userGameData.Level += 1;
         int level = Instance.userGameData.Level;
-        Instance.userGameData.OffsetX = 0.5f * (level / 4);
+        Instance.userGameData.OffsetX = 0.3f + 0.2f * (level / 4);
         Instance.userGameData.ProbabilityOfEnemy = 10 + 10 * (level / 4);
         Instance.userGameData.ProbabilityOfTable = 10 + 10 * (level / 4);
+        isStopped = true;
         // 发送升级事件
         JSONUtils.Save<UserGameData>(Instance.userGameData);
         PostNotification.Post(Const.Notification.PassedLevel, Instance);
@@ -67,9 +63,10 @@ public class UserStorage
     {
         Instance.userGameData.TotalScore += score;
         AudioManager.Play("金币");
-
         // 检查是否升级
-        int maxScore = (2 << Instance.userGameData.Level) * 100;
+        int maxScore = (Instance.userGameData.Level == 1 ? 1 : (2 << Instance.userGameData.Level - 2)) * 100;
+
+        Debug.Log($"{maxScore},{Instance.userGameData.TotalScore}");
         // 是否需要升级
         if (maxScore <= Instance.userGameData.TotalScore)
         {
@@ -118,17 +115,38 @@ public class UserStorage
         return Instance.userGameData.LifeNum <= 0;
     }
 
-    private void restart()
+    private static void clear(UserGameData userGameData)
     {
-
-        // 加载数据
         userGameData.Level = 1;
         userGameData.OffsetX = 0.5f;
         userGameData.ProbabilityOfEnemy = 10;
         userGameData.TotalScore = 0;
         userGameData.ProbabilityOfTable = 10;
         userGameData.LifeNum = 3;
-        JSONUtils.Save<UserGameData>(Instance.userGameData);
+        isStopped = false;
+    }
+
+    public static bool IsStopped()
+    {
+        return isStopped;
+    }
+
+    public static void SetContinue()
+    {
+        isStopped = false;
+    }
+
+    public static void SetStop()
+    {
+        isStopped = true;
+    }
+
+    private void restart()
+    {
+
+        // 加载数据
+        clear(userGameData);
+        JSONUtils.Save<UserGameData>(userGameData);
     }
 
     /**

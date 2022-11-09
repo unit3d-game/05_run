@@ -13,10 +13,15 @@ public class GameOverControl : MonoBehaviour
         yield return operation;
     }
 
+    private void Start()
+    {
+        AudioManager.Play("Boss死了");
+    }
+
     public void Restart()
     {
-        StartCoroutine(loadSceneAndData());
         UserStorage.Restart();
+        StartCoroutine(loadSceneAndData());
     }
 }
 
